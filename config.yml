@@ -1,0 +1,6 @@
+token: SOME_TOKEN_HERE # insert TOKEN OAuth
+vms: [ # or all
+  "vm-1",
+  "vm-2"
+]
+logglevel: DEBUG 
