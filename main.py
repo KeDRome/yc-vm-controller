@@ -1,6 +1,7 @@
-import os
+#!/usr/bin/python3
 import sys
 import yaml
+import time
 import logging
 import requests
 import subprocess
@@ -65,28 +66,66 @@ class CheckRequirements():
 
 class Monitor():
     """ Check state of VMs """
-    pass
+    def __init__(self, config: dict) -> None:
+        logging.debug("Monitoring started..")
+        self.vms: list[str] = config.get("vms")
+        if self.vms is None: 
+            raise RuntimeError("VMs не определены!")
+        for vm in self.vms:
+            if self.check_state_of_vm(vm): pass
+            else: self.heal_vm(vm) 
+        else: time.sleep(60)
+            
+    def heal_vm(self, vm: str) -> None:
+        """ включает ВМ """
+        logging.error(f"VM: {vm} is not RUNNING.. let's start it")
+        subprocess.check_call(f"yc compute instance start {vm}", shell=True)
+
+    def check_state_of_vm(self, vm: str) -> bool:
+        """ проверяет что состояние ВМ - RUNNING """
+        logging.debug(f"Starting monitor for {vm}")
+        response: str = subprocess.run(f"yc compute instance show {vm}",
+                                       capture_output=True,
+                                       text=True,
+                                       shell=True).stdout.split("\n")
+        if response is None:
+            raise RuntimeError(f"VM: {vm} - is absent!")
+        
+        logging.debug(f"{response}")
+        for i in response:
+            if i.startswith("status"):
+                status: str = i.split(": ")[1]
+                break
+        else: raise RuntimeError(f"VM: {vm} - have not status?..")
+        logging.debug(status)
+        if status in ("RUNNING", "STARTING"): return True
+        else: return False
 
 def main(config: dict):
     logging.info("Running tool..")
     try:
         CheckRequirements(config)
+        logging.info("Monitoring started..")
+        while True: Monitor(config)
     except RuntimeError as err:
         logging.error(str(err))
 
 if __name__ == '__main__':
     config_file = open(".config.yml", "r")
     config: dict = yaml.safe_load(config_file)
+    loggfile: str = config.get("loggpath")
+    if loggfile is None:
+        loggfile: str = "/var/log/yc.log"
     logglevel: str = config.get("logglevel") # may return one of DEBUG, INFO, ERROR and etc..
     if logglevel is None:
-        logglevel: logging._Level = logging.INFO
-    elif logglevel == "DEBUG":
-        logglevel: logging._Level = logging.DEBUG
-    elif logglevel == "ERROR":
-        logglevel: logging._Level = logging.ERROR
+        logglevel = logging.INFO
+    elif logglevel.upper() == "DEBUG":
+        logglevel = logging.DEBUG
+    elif logglevel.upper() == "ERROR":
+        logglevel = logging.ERROR
     logging.basicConfig(
         level=logglevel,
-        filename="yc.log",
+        filename=loggfile,
         format="%(asctime)s (%(filename)s: %(lineno)d) %(levelname)s %(message)s",
         filemode="a")
     main(config)
