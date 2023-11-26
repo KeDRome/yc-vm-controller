@@ -1,7 +1,6 @@
-token: SOME_TOKEN_HERE # insert TOKEN OAuth
 vms: [ # or all
-  "vm-1",
-  "vm-2"
+  "vm-name",
+  "another-vm"
 ]
-logglevel: DEBUG
-loggpath: /var/log/yc.log 
+logglevel: INFO
+loggpath: yc.log 

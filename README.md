@@ -7,7 +7,7 @@ Yandex cloud let you buy a VM (but VM may be stopped in some times) for lower pr
 
 This tool let you setup automatic monitor for yours lowcost VMs
 
-1. Input OAuth token in config.yml:
+1. Get OAuth token and remmember it (they need to insert, when asked):
 2. Input as list VMs and tool will be monitor targets (or just input `all`, then all VMs will be).
 3. Then move config in "safe place":
     ```bash
