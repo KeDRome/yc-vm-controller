@@ -3,4 +3,5 @@ vms: [ # or all
   "vm-1",
   "vm-2"
 ]
-logglevel: DEBUG 
+logglevel: DEBUG
+loggpath: /var/log/yc.log 
